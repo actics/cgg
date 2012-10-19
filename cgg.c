@@ -6,11 +6,12 @@
 Практические работы Александра Лаврукова"
 #define ABOUT_MESSAGE "<b>О авторе</b>\nАлександр Лавруков. УрГУ КН-302. 2012"
 
-#define AVE_IMAGE    "ave_image.jpg"
+#define IMAGES_DIRECTORY "./images/"
 
-#define BOTTOM_ABOUT_IMAGE "bottom_about.jpg"
-#define BOTTOM_CLOSE_IMAGE "bottom_close.jpg"
-#define AUTHOR_PHOTO       "author_photo.jpg"
+#define AVE_IMAGE          IMAGES_DIRECTORY "ave_image.jpg"
+#define BOTTOM_ABOUT_IMAGE IMAGES_DIRECTORY "bottom_about.jpg"
+#define BOTTOM_CLOSE_IMAGE IMAGES_DIRECTORY "bottom_close.jpg"
+#define AUTHOR_PHOTO       IMAGES_DIRECTORY "author_photo.jpg"
 
 static void show_about(GtkWidget *button, GtkWidget *parent_window) {
     GtkWidget *msg_dial;
@@ -97,12 +98,12 @@ int main(int argc, char ** argv) {
     
     /* Объявление, создание и упаковка виджета с первым заданием */
     GtkWidget *first_task;
-    first_task = first_task_new(GTK_WINDOW(main_window));
+    first_task = first_task_new();
     gtk_notebook_append_page(GTK_NOTEBOOK(main_notebook), first_task, gtk_label_new("Задание 1"));
     
     g_signal_connect(G_OBJECT(main_bottom_about_button), "clicked", G_CALLBACK(show_about),    main_window);
-    g_signal_connect(G_OBJECT(main_bottom_close_button),     "clicked", G_CALLBACK(gtk_main_quit), NULL);
-    g_signal_connect(G_OBJECT(main_window),                  "destroy", G_CALLBACK(gtk_main_quit), NULL);
+    g_signal_connect(G_OBJECT(main_bottom_close_button), "clicked", G_CALLBACK(gtk_main_quit), NULL);
+    g_signal_connect(G_OBJECT(main_window),              "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
     /* Запуск */
     gtk_container_add(GTK_CONTAINER(main_window), main_vbox);

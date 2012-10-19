@@ -57,14 +57,15 @@ static float f(float x) {
     return (parametr[PARAMETR_A]*x*x + parametr[PARAMETR_B]*x + parametr[PARAMETR_C]);
 }
 
-static int* draw_graph(int screen_width, int screen_height) {
+static int* draw_graph(cairo_t *cr, int screen_width, int screen_height) {
     int   *ret_points;
     float *points;
     ret_points = (int*)   malloc(screen_width*sizeof(int));
     points     = (float*) malloc(screen_width*sizeof(float));
     
-    float min_y = FLT_MAX;
-    float max_y = FLT_MIN;
+    float min_y, max_y;
+    min_y = max_y = f(parametr[LEFT_BOUND]);
+    
     float expansion_x = (parametr[RIGHT_BOUND] - parametr[LEFT_BOUND]) / screen_width;
     
     int i;
@@ -76,9 +77,27 @@ static int* draw_graph(int screen_width, int screen_height) {
     }
     
     float expansion_y = screen_height / (min_y - max_y);
-    for (i=0; i<screen_width; i++)
+    
+    for (i=0; i<screen_width; i++) {
         ret_points[i] = (int) ((points[i] - max_y)*expansion_y);
-
+    }
+        
+    /***********/
+    
+    int x_axes_coor;
+    if (min_y < 0 && 0 < max_y)
+        x_axes_coor = -max_y * expansion_y;
+    cairo_move_to(cr, 0, x_axes_coor);
+    cairo_line_to(cr, screen_width, x_axes_coor);
+    
+    int y_axes_coor;
+    if (parametr[LEFT_BOUND] < 0 && 0 < parametr[RIGHT_BOUND])
+        y_axes_coor = -parametr[LEFT_BOUND] / expansion_x;
+    cairo_move_to(cr, y_axes_coor, 0);
+    cairo_line_to(cr, y_axes_coor, screen_height);
+    
+    /***********/
+        
     free(points);
     return ret_points;
 }
@@ -101,7 +120,7 @@ static void plot_graph (GtkWidget *plot_button, ParametrEntry *entrys) {
     
     cairo_t *cr;
     cr = gdk_cairo_create(gtk_widget_get_window(GTK_WIDGET(entrys->drawing_area)));
-    int *points = draw_graph(screen_width, screen_height);
+    int *points = draw_graph(cr, screen_width, screen_height);
     cairo_set_source_rgb(cr, 0, 0, 0);
     cairo_set_line_width(cr, 1);
     cairo_move_to(cr, 0, points[0]);
@@ -168,7 +187,7 @@ static GtkWidget* parametrs_widget_new(GtkWidget *drawing_area) {
     gtk_box_pack_start(GTK_BOX(vbox), separator_1,     FALSE, TRUE, 5);
     gtk_box_pack_start(GTK_BOX(vbox), plot_button,     FALSE, TRUE, 0);
     
-    char *m[6] = {"-100", "100", "1", "0", "+50", "0"};
+    char *m[6] = {"-5", "5", "1", "0", "-10", "0"};
     int i;
     for (i=0; i<6; ++i) {
         gtk_entry_set_text(GTK_ENTRY(entrys->parametr[i]), m[i]);

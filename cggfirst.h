@@ -3,6 +3,6 @@
 
 #include <gtk/gtk.h>
 
-GtkWidget* first_task_new(GtkWindow *parent_window);
+GtkWidget* first_task_new();
 
 #endif /* __CGG_FIRST_TASK__ */
