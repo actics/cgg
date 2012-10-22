@@ -1,9 +1,9 @@
 #include <gtk/gtk.h>
-#include <cairo.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <float.h>
 
 /*
  * Задание 1.
@@ -14,7 +14,6 @@
 Поля параметров должны быть не пустыми, и должны сдержать  корректные числа"
 
 #define EMPTY_ZONE_WIDTH 5
-#define AXES_UNIT_PIXELS 30
 
 enum {
     LEFT_BOUND,
@@ -25,110 +24,44 @@ enum {
     PARAMETR_D
 };
 
-static GtkWidget *drawing_area;
-static GtkWidget *entry[6]; // Сделать нормально!!!
+typedef struct {
+    GtkWidget *drawing_area;
+    /* 0 - левая граница
+       1 - правая границв
+       2 - параметр a
+       3 - параметр b
+       4 - параметр c
+       5 - параметр d
+    */
+    GtkWidget *parametr[6];
+} ParametrEntry;
+
+static void show_msg_dial(GtkWindow *parent_window) {
+    GtkWidget *msg_dial;
+    msg_dial = gtk_message_dialog_new_with_markup(
+        parent_window,
+        GTK_DIALOG_DESTROY_WITH_PARENT,
+        GTK_MESSAGE_ERROR,
+        GTK_BUTTONS_OK,
+        BAD_PARAMETRS_ERROR_MESSAGE
+    );
+    gtk_window_set_title(GTK_WINDOW(msg_dial), "Ошибка");
+    gtk_dialog_run(GTK_DIALOG(msg_dial));
+    gtk_widget_destroy(msg_dial);
+}
+
+// Проблемы! Глобальная переменная. Однако, как элегантно избавиться от неё потнятия не имею.
 static float parametr[6];
 
-static void draw_axes(cairo_t *cr, 
-    int screen_width, int screen_height, 
-    const int x_axes_coor, const int y_axes_coor)
-{    
-    cairo_rectangle(cr, 0, 0, screen_width, screen_height);
-    
-    screen_width  -= EMPTY_ZONE_WIDTH;
-    screen_height -= EMPTY_ZONE_WIDTH;
-    int i;
-    
-    
-    /***Отрисовка осей***/
-    
-    cairo_set_source_rgb(cr, 0, 0, 0);
-    cairo_set_line_width(cr, 1.5);
-    
-    cairo_move_to(cr, EMPTY_ZONE_WIDTH, x_axes_coor);
-    cairo_line_to(cr, screen_width,     x_axes_coor);
-        
-    cairo_move_to(cr, y_axes_coor, EMPTY_ZONE_WIDTH);
-    cairo_line_to(cr, y_axes_coor, screen_height);
-    
-    /***Отрисовка стрелок осей***/
-    
-    cairo_move_to(cr, screen_width,   x_axes_coor);
-    cairo_line_to(cr, screen_width-5, x_axes_coor-3);
-    cairo_move_to(cr, screen_width,   x_axes_coor);
-    cairo_line_to(cr, screen_width-5, x_axes_coor+3);
-    
-    cairo_move_to(cr, y_axes_coor,   EMPTY_ZONE_WIDTH);
-    cairo_line_to(cr, y_axes_coor-3, EMPTY_ZONE_WIDTH+5);
-    cairo_move_to(cr, y_axes_coor,   EMPTY_ZONE_WIDTH);
-    cairo_line_to(cr, y_axes_coor+3, EMPTY_ZONE_WIDTH+5);
-    
-    cairo_stroke(cr);
-    
-    /***Отрисовка кординатной сетки***/
-    
-    cairo_set_source_rgb (cr, 0, 0.5, 0);
-    cairo_set_line_width(cr, 0.3);
-    
-    for (i=y_axes_coor; i<screen_width; i+=AXES_UNIT_PIXELS) {
-        cairo_move_to(cr, i, EMPTY_ZONE_WIDTH);
-        cairo_line_to(cr, i, screen_height);
-    }
-    for (i=y_axes_coor; i>EMPTY_ZONE_WIDTH; i-=AXES_UNIT_PIXELS) {
-        cairo_move_to(cr, i, EMPTY_ZONE_WIDTH);
-        cairo_line_to(cr, i, screen_height);
-    }
-    
-    for (i=x_axes_coor; i<screen_height; i+=AXES_UNIT_PIXELS) {
-        cairo_move_to(cr, EMPTY_ZONE_WIDTH, i);
-        cairo_line_to(cr, screen_width,     i);
-    }
-    for (i=x_axes_coor; i>EMPTY_ZONE_WIDTH; i-=AXES_UNIT_PIXELS) {
-        cairo_move_to(cr, EMPTY_ZONE_WIDTH, i);
-        cairo_line_to(cr, screen_width,     i);
-    }
-    
-    cairo_stroke(cr);
-    
-    /***Отрисовка рисок на осях***/
-    
-    cairo_set_source_rgb(cr, 0, 0, 0);
-    cairo_set_line_width(cr, 1.0);
-    
-    for (i=y_axes_coor; i<screen_width; i+=AXES_UNIT_PIXELS) {
-        cairo_move_to(cr, i, x_axes_coor-3);
-        cairo_line_to(cr, i, x_axes_coor+3);
-    }
-    for (i=y_axes_coor; i>EMPTY_ZONE_WIDTH; i-=AXES_UNIT_PIXELS) {
-        cairo_move_to(cr, i, x_axes_coor-3);
-        cairo_line_to(cr, i, x_axes_coor+3);
-    }
-    
-    for (i=x_axes_coor; i<screen_height; i+=AXES_UNIT_PIXELS) {
-        cairo_move_to(cr, y_axes_coor-3, i);
-        cairo_line_to(cr, y_axes_coor+3, i);
-    }
-    for (i=x_axes_coor; i>EMPTY_ZONE_WIDTH; i-=AXES_UNIT_PIXELS) {
-        cairo_move_to(cr, y_axes_coor-3, i);
-        cairo_line_to(cr, y_axes_coor+3, i);
-    }
-    
-    cairo_stroke(cr);
-}
-
 static float f(float x) {
-    return (parametr[PARAMETR_A]*x*x*x + parametr[PARAMETR_B]*x*x + parametr[PARAMETR_C]*x + parametr[PARAMETR_D]);
+    return (parametr[PARAMETR_A]*x*x + parametr[PARAMETR_B]*x + parametr[PARAMETR_C]);
 }
 
-static void draw_graph(cairo_t *cr) {
-    int screen_width, screen_height;
-    screen_width  = gtk_widget_get_allocated_width(GTK_WIDGET(drawing_area));
-    screen_height = gtk_widget_get_allocated_height(GTK_WIDGET(drawing_area));
-    
-    /***Расчет точек графика***/
-    
+static int* draw_graph(cairo_t *cr, int screen_width, int screen_height) {
+    int   *ret_points;
     float *points;
-    points = (float*) malloc(screen_width*sizeof(float));
+    ret_points = (int*)   malloc(screen_width*sizeof(int));
+    points     = (float*) malloc(screen_width*sizeof(float));
     
     float min_y, max_y;
     min_y = max_y = f(parametr[LEFT_BOUND]);
@@ -145,83 +78,60 @@ static void draw_graph(cairo_t *cr) {
     
     float expansion_y = screen_height / (min_y - max_y);
     
-    /***Отрисовка графика***/
-    
-    cairo_set_source_rgb(cr, 1, 0, 0);
-    cairo_set_line_width(cr, 1.0);
-    
-    cairo_move_to(cr, 0, (int) ((points[0] - max_y)*expansion_y));
-    for (i=1; i<screen_width; i++)
-        cairo_line_to(cr, i, (int) ((points[i] - max_y)*expansion_y));
-    
-    cairo_stroke(cr);
-    
-    /***Расчет координат осей***/
+    for (i=0; i<screen_width; i++) {
+        ret_points[i] = (int) ((points[i] - max_y)*expansion_y);
+    }
+        
+    /***********/
     
     int x_axes_coor;
     if (min_y < 0 && 0 < max_y)
         x_axes_coor = -max_y * expansion_y;
-    else if (min_y > 0)
-        x_axes_coor = screen_height - EMPTY_ZONE_WIDTH;
-    else
-        x_axes_coor = EMPTY_ZONE_WIDTH;
+    cairo_move_to(cr, 0, x_axes_coor);
+    cairo_line_to(cr, screen_width, x_axes_coor);
     
     int y_axes_coor;
     if (parametr[LEFT_BOUND] < 0 && 0 < parametr[RIGHT_BOUND])
         y_axes_coor = -parametr[LEFT_BOUND] / expansion_x;
-    else if (parametr[LEFT_BOUND] < 0)
-        y_axes_coor = screen_width - EMPTY_ZONE_WIDTH;
-    else
-        y_axes_coor = EMPTY_ZONE_WIDTH;
+    cairo_move_to(cr, y_axes_coor, 0);
+    cairo_line_to(cr, y_axes_coor, screen_height);
     
-    /***Отрисовка осей***/
-    
-    draw_axes(cr, screen_width, screen_height, x_axes_coor, y_axes_coor);
-    
+    /***********/
+        
     free(points);
+    return ret_points;
 }
 
-
-static gboolean draw_callback(GtkWidget *widget, cairo_t *cr, gpointer p) {
-    draw_graph(cr);
-    return FALSE;
-}
-
-static void show_msg_dial(GtkWidget *parent_window) {
-    GtkWidget *msg_dial;
-    msg_dial = gtk_message_dialog_new_with_markup(
-        GTK_WINDOW(parent_window),
-        GTK_DIALOG_DESTROY_WITH_PARENT,
-        GTK_MESSAGE_ERROR,
-        GTK_BUTTONS_OK,
-        BAD_PARAMETRS_ERROR_MESSAGE
-    );
-    gtk_window_set_title(GTK_WINDOW(msg_dial), "Ошибка");
-    gtk_dialog_run(GTK_DIALOG(msg_dial));
-    gtk_widget_destroy(msg_dial);
-}
-
-static void plot_button_clicked(GtkWidget *plot_button, gpointer p) {
-    float new_parametr[6];
-    
+static void plot_graph (GtkWidget *plot_button, ParametrEntry *entrys) {
     int i;
     for (i=0; i<6; ++i) {
         char *parametr_str;
-        parametr_str = (char*) gtk_entry_get_text(GTK_ENTRY(entry[i]));
-        new_parametr[i] = atof(parametr_str);
-        if (new_parametr[i] == 0 && strcmp(parametr_str, "0") != 0) {
-            show_msg_dial(gtk_widget_get_toplevel(GTK_WIDGET(entry[LEFT_BOUND])));
+        parametr_str = (char*) gtk_entry_get_text(GTK_ENTRY(entrys->parametr[i]));
+        parametr[i] = atof(parametr_str);
+        if (parametr[i] == 0 && strcmp(parametr_str, "0") != 0) {
+            show_msg_dial(gtk_widget_get_tooltip_window(GTK_WIDGET(entrys->parametr[0])));
             return;
         }
     }
     
-    for (i=0; i<6; ++i)
-        parametr[i] = new_parametr[i];
+    int screen_width, screen_height;
+    screen_width  = gtk_widget_get_allocated_width(GTK_WIDGET(entrys->drawing_area));
+    screen_height = gtk_widget_get_allocated_height(GTK_WIDGET(entrys->drawing_area));
     
-    gtk_widget_queue_draw(drawing_area);
+    cairo_t *cr;
+    cr = gdk_cairo_create(gtk_widget_get_window(GTK_WIDGET(entrys->drawing_area)));
+    int *points = draw_graph(cr, screen_width, screen_height);
+    cairo_set_source_rgb(cr, 0, 0, 0);
+    cairo_set_line_width(cr, 1);
+    cairo_move_to(cr, 0, points[0]);
+    for (i=1; i<screen_width; i++)
+        cairo_line_to(cr, i, (int) points[i]);
+    
+    cairo_stroke(cr);
+    free(points);
 }
 
-static GtkWidget* parametrs_widget_new() {
+static GtkWidget* parametrs_widget_new(GtkWidget *drawing_area) {
     GtkWidget *vbox;
     GtkWidget *interval_label;
     GtkWidget *interval_hbox;
@@ -230,40 +140,45 @@ static GtkWidget* parametrs_widget_new() {
     GtkWidget *separator_0;
     GtkWidget *separator_1;
     GtkWidget *parametrs_grid;
+    
+    ParametrEntry *entrys;
+    entrys = (ParametrEntry*) malloc(sizeof(ParametrEntry));
+    entrys->drawing_area = drawing_area;
+    
     /* Создание виджетов окна параметров */
-    vbox               = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
-    interval_label     = gtk_label_new("Выберите интервал");
-    interval_hbox      = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
-    entry[LEFT_BOUND]  = gtk_entry_new();
-    entry[RIGHT_BOUND] = gtk_entry_new();
-    separator_0        = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
-    parametrs_label    = gtk_label_new("Введите параметры");
-    parametrs_grid     = gtk_grid_new();
-    entry[PARAMETR_A]  = gtk_entry_new();
-    entry[PARAMETR_B]  = gtk_entry_new();
-    entry[PARAMETR_C]  = gtk_entry_new();
-    entry[PARAMETR_D]  = gtk_entry_new();
-    separator_1        = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
-    plot_button        = gtk_button_new_with_label("Отрисовать");
+    vbox                = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
+    interval_label      = gtk_label_new("Выберите интервал");
+    interval_hbox       = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
+    entrys->parametr[0] = gtk_entry_new();
+    entrys->parametr[1] = gtk_entry_new();
+    separator_0         = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
+    parametrs_label     = gtk_label_new("Введите параметры");
+    parametrs_grid      = gtk_grid_new();
+    entrys->parametr[2] = gtk_entry_new();
+    entrys->parametr[3] = gtk_entry_new();
+    entrys->parametr[4] = gtk_entry_new();
+    entrys->parametr[5] = gtk_entry_new();
+    separator_1         = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
+    plot_button         = gtk_button_new_with_label("Отрисовать");
     
     /* Настройка виджетов окна параметров */
     gtk_grid_set_row_spacing(GTK_GRID(parametrs_grid), 5);
     gtk_grid_set_column_spacing(GTK_GRID(parametrs_grid), 5);
     gtk_container_set_border_width(GTK_CONTAINER(vbox), 5);
-    gtk_entry_set_placeholder_text(GTK_ENTRY(entry[LEFT_BOUND]),  "Левая граница");
-    gtk_entry_set_placeholder_text(GTK_ENTRY(entry[RIGHT_BOUND]), "Правая граница");
-    gtk_entry_set_placeholder_text(GTK_ENTRY(entry[PARAMETR_A]),  "A");
-    gtk_entry_set_placeholder_text(GTK_ENTRY(entry[PARAMETR_B]),  "B");
-    gtk_entry_set_placeholder_text(GTK_ENTRY(entry[PARAMETR_C]),  "C");
-    gtk_entry_set_placeholder_text(GTK_ENTRY(entry[PARAMETR_D]),  "D");
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entrys->parametr[0]), "Левая граница");
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entrys->parametr[1]), "Правая граница");
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entrys->parametr[2]), "A");
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entrys->parametr[3]), "B");
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entrys->parametr[4]), "C");
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entrys->parametr[5]), "D");
         
     /* Упаковка окна параметров */
-    gtk_box_pack_start(GTK_BOX(interval_hbox), entry[LEFT_BOUND],  FALSE, TRUE, 0);    
-    gtk_box_pack_start(GTK_BOX(interval_hbox), entry[RIGHT_BOUND], FALSE, TRUE, 0);
-    gtk_grid_attach(GTK_GRID(parametrs_grid),  entry[PARAMETR_A], 0, 0, 1, 1);
-    gtk_grid_attach(GTK_GRID(parametrs_grid),  entry[PARAMETR_B], 1, 0, 1, 1);
-    gtk_grid_attach(GTK_GRID(parametrs_grid),  entry[PARAMETR_C], 0, 1, 1, 1);
-    gtk_grid_attach(GTK_GRID(parametrs_grid),  entry[PARAMETR_D], 1, 1, 1, 1);
+    gtk_box_pack_start(GTK_BOX(interval_hbox), entrys->parametr[0], FALSE, TRUE, 0);    
+    gtk_box_pack_start(GTK_BOX(interval_hbox), entrys->parametr[1], FALSE, TRUE, 0);
+    gtk_grid_attach(GTK_GRID(parametrs_grid), entrys->parametr[2], 0, 0, 1, 1);
+    gtk_grid_attach(GTK_GRID(parametrs_grid), entrys->parametr[3], 1, 0, 1, 1);
+    gtk_grid_attach(GTK_GRID(parametrs_grid), entrys->parametr[4], 0, 1, 1, 1);
+    gtk_grid_attach(GTK_GRID(parametrs_grid), entrys->parametr[5], 1, 1, 1, 1);
     gtk_box_pack_start(GTK_BOX(vbox), interval_label,  FALSE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(vbox), interval_hbox,   FALSE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(vbox), separator_0,     FALSE, TRUE, 5);
@@ -272,18 +187,13 @@ static GtkWidget* parametrs_widget_new() {
     gtk_box_pack_start(GTK_BOX(vbox), separator_1,     FALSE, TRUE, 5);
     gtk_box_pack_start(GTK_BOX(vbox), plot_button,     FALSE, TRUE, 0);
     
-    const int init_parametr[] = {-5, 5, 1, 0, 0, 0};
-    char buf[3];
-    
+    char *m[6] = {"-5", "5", "1", "0", "-10", "0"};
     int i;
     for (i=0; i<6; ++i) {
-        parametr[i] = init_parametr[i];
-        sprintf(buf, "%d", init_parametr[i]);
-        gtk_entry_set_text(GTK_ENTRY(entry[i]), buf);
+        gtk_entry_set_text(GTK_ENTRY(entrys->parametr[i]), m[i]);
     }
     
-    g_signal_connect(plot_button, "clicked", G_CALLBACK(plot_button_clicked), NULL);
-    g_signal_connect(drawing_area, "draw", G_CALLBACK(draw_callback), NULL);
+    g_signal_connect(plot_button, "clicked", G_CALLBACK(plot_graph), entrys);
     
     return vbox;
 }
@@ -293,11 +203,12 @@ GtkWidget* first_task_new() {
     GtkWidget *hbox;
     GtkWidget *parametrs;
     GtkWidget *separator;
+    GtkWidget *drawing_area;
     
     hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
-    gtk_container_set_border_width(GTK_CONTAINER(hbox), 5);
     drawing_area = gtk_drawing_area_new();
-    parametrs = parametrs_widget_new();
+    gtk_widget_set_size_request(GTK_WIDGET(drawing_area), 100, 100);
+    parametrs = parametrs_widget_new(drawing_area);
     separator = gtk_separator_new(GTK_ORIENTATION_VERTICAL);
     
     gtk_box_pack_start(GTK_BOX(hbox), parametrs,    FALSE, TRUE, 0);

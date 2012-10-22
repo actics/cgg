@@ -8,9 +8,9 @@
 
 #define IMAGES_DIRECTORY "./images/"
 
-#define AVE_IMAGE          IMAGES_DIRECTORY "ave_image.png"
-#define BOTTOM_ABOUT_IMAGE IMAGES_DIRECTORY "bottom_about.png"
-#define BOTTOM_CLOSE_IMAGE IMAGES_DIRECTORY "bottom_close.png"
+#define AVE_IMAGE          IMAGES_DIRECTORY "ave_image.jpg"
+#define BOTTOM_ABOUT_IMAGE IMAGES_DIRECTORY "bottom_about.jpg"
+#define BOTTOM_CLOSE_IMAGE IMAGES_DIRECTORY "bottom_close.jpg"
 #define AUTHOR_PHOTO       IMAGES_DIRECTORY "author_photo.jpg"
 
 static void show_about(GtkWidget *button, GtkWidget *parent_window) {
