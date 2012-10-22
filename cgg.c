@@ -8,9 +8,9 @@
 
 #define IMAGES_DIRECTORY "./images/"
 
-#define AVE_IMAGE          IMAGES_DIRECTORY "ave_image.jpg"
-#define BOTTOM_ABOUT_IMAGE IMAGES_DIRECTORY "bottom_about.jpg"
-#define BOTTOM_CLOSE_IMAGE IMAGES_DIRECTORY "bottom_close.jpg"
+#define AVE_IMAGE          IMAGES_DIRECTORY "ave_image.png"
+#define BOTTOM_ABOUT_IMAGE IMAGES_DIRECTORY "bottom_about.png"
+#define BOTTOM_CLOSE_IMAGE IMAGES_DIRECTORY "bottom_close.png"
 #define AUTHOR_PHOTO       IMAGES_DIRECTORY "author_photo.jpg"
 
 static void show_about(GtkWidget *button, GtkWidget *parent_window) {
@@ -64,16 +64,16 @@ int main(int argc, char ** argv) {
     gtk_label_set_use_markup(GTK_LABEL(main_ave_label), TRUE);
     
     /* Упаковка шапки */
-    main_ave_hbox  = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
+    main_ave_hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
     gtk_box_pack_start(GTK_BOX(main_ave_hbox), main_ave_image, FALSE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(main_ave_hbox), main_ave_label, FALSE, TRUE, 0);
 
     /* Создание нижней панели */
     main_bottom_about_image  = gtk_image_new_from_file(BOTTOM_ABOUT_IMAGE);
     main_bottom_about_button = gtk_button_new_with_label("О авторе");
-    main_bottom_filler           = gtk_grid_new(); // Православное заполнение как?
-    main_bottom_close_image      = gtk_image_new_from_file(BOTTOM_CLOSE_IMAGE);
-    main_bottom_close_button     = gtk_button_new_with_label("Закрыть");
+    main_bottom_filler       = gtk_grid_new(); // Православное заполнение как?
+    main_bottom_close_image  = gtk_image_new_from_file(BOTTOM_CLOSE_IMAGE);
+    main_bottom_close_button = gtk_button_new_with_label("Закрыть");
     
     /* Настройка нижней панели */
     gtk_button_set_image(GTK_BUTTON(main_bottom_about_button), main_bottom_about_image);
@@ -82,8 +82,8 @@ int main(int argc, char ** argv) {
     /* Упаковка нижней панели */
     main_bottom_hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
     gtk_box_pack_start(GTK_BOX(main_bottom_hbox), main_bottom_about_button, FALSE, TRUE, 0);
-    gtk_box_pack_start(GTK_BOX(main_bottom_hbox), main_bottom_filler,            TRUE, TRUE, 0);
-    gtk_box_pack_start(GTK_BOX(main_bottom_hbox), main_bottom_close_button,     FALSE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(main_bottom_hbox), main_bottom_filler,       TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(main_bottom_hbox), main_bottom_close_button, FALSE, TRUE, 0);
     
     /* Создание виджета вкладок */
     main_notebook = gtk_notebook_new();
@@ -101,6 +101,7 @@ int main(int argc, char ** argv) {
     first_task = first_task_new();
     gtk_notebook_append_page(GTK_NOTEBOOK(main_notebook), first_task, gtk_label_new("Задание 1"));
     
+    /* Подключение необходимых обратных вызовов */
     g_signal_connect(G_OBJECT(main_bottom_about_button), "clicked", G_CALLBACK(show_about),    main_window);
     g_signal_connect(G_OBJECT(main_bottom_close_button), "clicked", G_CALLBACK(gtk_main_quit), NULL);
     g_signal_connect(G_OBJECT(main_window),              "destroy", G_CALLBACK(gtk_main_quit), NULL);
