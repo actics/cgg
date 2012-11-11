@@ -1,6 +1,12 @@
 #ifndef __CGG_FIRST_TASK__
 #define __CGG_FIRST_TASK__
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <float.h>
+#include <math.h>
+
 #include <gtk/gtk.h>
 
 GtkWidget* first_task_new();
@@ -8,6 +14,7 @@ GtkWidget* first_task_new();
 #endif
 
 /*
+Акула: Чем вам помочь?
 Мышь:  Чем ВАМ помочь?
 Акула: А что умеете?
 Мышь:  Все.

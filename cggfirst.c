@@ -1,10 +1,3 @@
-#include <gtk/gtk.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <float.h>
-#include <math.h>
-
 #include "cggfirst.h"
 
 /*
@@ -13,7 +6,7 @@
  */
 
 #define FRAME_TITLE   "Постоение графика функции"
-#define FUNCTION_NAME "<b>sin(ax+b)/(cx+d)</b>"
+#define FUNCTION_NAME "<b>f(x) = sin(ax+b)/(cx+d) на [α, β]</b>"
 #define BAD_PARAMETRS_ERROR_MESSAGE "<b>Введены неверные параметры</b>\n\
 Поля параметров должны быть не пустыми, и должны сдержать  корректные числа"
 
@@ -52,7 +45,7 @@ static void draw_axes(cairo_t   *cr,
     float expansion_x = (parametr[RIGHT_BOUND] - parametr[LEFT_BOUND]) / screen_width;
     float expansion_y = screen_height / (min_y - max_y);
     
-    int x_axes_coor;
+    int x_axes_coor, y_axes_coor;
     if (min_y < 0 && 0 < max_y) {
         x_axes_coor = -max_y * expansion_y;
         if (x_axes_coor < EMPTY_ZONE_WIDTH)
@@ -65,7 +58,6 @@ static void draw_axes(cairo_t   *cr,
     else
         x_axes_coor = EMPTY_ZONE_WIDTH;
     
-    int y_axes_coor;
     if (parametr[LEFT_BOUND] < 0 && 0 < parametr[RIGHT_BOUND]) {
         y_axes_coor = -parametr[LEFT_BOUND] / expansion_x;
         if (y_axes_coor < EMPTY_ZONE_WIDTH)
@@ -150,7 +142,14 @@ static void draw_axes(cairo_t   *cr,
 }
 
 static void draw_graph(cairo_t *cr) {
+    int i;
     int screen_width, screen_height;
+    
+    float *points;
+    float min_y, max_y;
+    float expansion_x, expansion_y;
+    float x;
+    
     screen_width  = gtk_widget_get_allocated_width(GTK_WIDGET(drawing_area))+1;
     screen_height = gtk_widget_get_allocated_height(GTK_WIDGET(drawing_area))+1;
     
@@ -158,25 +157,21 @@ static void draw_graph(cairo_t *cr) {
     screen_height -= 2*EMPTY_ZONE_WIDTH;
     
     /***Расчет точек графика***/
-    
-    float *points;
     points = (float*) malloc(screen_width*sizeof(float));
     
-    float min_y, max_y;
     min_y = FLT_MAX;
     max_y = FLT_MIN;
     
-    float expansion_x = (parametr[RIGHT_BOUND] - parametr[LEFT_BOUND]) / screen_width;
+    expansion_x = (parametr[RIGHT_BOUND] - parametr[LEFT_BOUND]) / screen_width;
     
-    int i;
-    float x=parametr[LEFT_BOUND];
+    x = parametr[LEFT_BOUND];
     for (i=0; i<screen_width; i++, x+=expansion_x) {
         points[i] = f(x);
         if (points[i] > max_y) max_y = points[i];
         if (points[i] < min_y) min_y = points[i];
     }
     
-    float expansion_y = screen_height / (min_y - max_y);
+    expansion_y = screen_height / (min_y - max_y);
     
     draw_axes(cr, screen_width+2*EMPTY_ZONE_WIDTH, screen_height+2*EMPTY_ZONE_WIDTH, min_y, max_y);
     
@@ -243,6 +238,16 @@ static void draw_button_clicked(GtkWidget *draw_button, gpointer p) {
     gtk_widget_queue_draw(drawing_area);
 }
 
+static void fill_parametrs() {
+    const char* init_parametr[] = {"-10", "10", "1", "0", "1", "0"};
+    int i;
+    
+    for (i=0; i<6; ++i) {
+        parametr[i] = atof(init_parametr[i]);
+        gtk_entry_set_text(GTK_ENTRY(entry[i]), init_parametr[i]);
+    }
+}
+
 static GtkWidget* parametrs_widget_new() {
     GtkWidget *vbox;
     GtkWidget *function_name_label;
@@ -280,17 +285,17 @@ static GtkWidget* parametrs_widget_new() {
     gtk_grid_set_row_spacing(GTK_GRID(parametrs_grid), 5);
     gtk_grid_set_column_spacing(GTK_GRID(parametrs_grid), 5);
     gtk_container_set_border_width(GTK_CONTAINER(vbox), 5);
-    gtk_entry_set_placeholder_text(GTK_ENTRY(entry[LEFT_BOUND]),  "Левая граница");
-    gtk_entry_set_placeholder_text(GTK_ENTRY(entry[RIGHT_BOUND]), "Правая граница");
-    gtk_entry_set_placeholder_text(GTK_ENTRY(entry[PARAMETR_A]),  "A");
-    gtk_entry_set_placeholder_text(GTK_ENTRY(entry[PARAMETR_B]),  "B");
-    gtk_entry_set_placeholder_text(GTK_ENTRY(entry[PARAMETR_C]),  "C");
-    gtk_entry_set_placeholder_text(GTK_ENTRY(entry[PARAMETR_D]),  "D");
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry[LEFT_BOUND]),  "α");
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry[RIGHT_BOUND]), "β");
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry[PARAMETR_A]),  "a");
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry[PARAMETR_B]),  "b");
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry[PARAMETR_C]),  "c");
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry[PARAMETR_D]),  "d");
     gtk_button_set_image(GTK_BUTTON(draw_button), draw_button_image);
     
     /* Упаковка окна параметров */
     gtk_box_pack_start(GTK_BOX(vbox), function_name_label,  FALSE, TRUE, 0);
-    gtk_box_pack_start(GTK_BOX(vbox), separator_0,     FALSE, TRUE, 5);
+    gtk_box_pack_start(GTK_BOX(vbox), separator_0,          FALSE, TRUE, 5);
     gtk_box_pack_start(GTK_BOX(interval_hbox), entry[LEFT_BOUND],  FALSE, TRUE, 0);    
     gtk_box_pack_start(GTK_BOX(interval_hbox), entry[RIGHT_BOUND], FALSE, TRUE, 0);
     gtk_grid_attach(GTK_GRID(parametrs_grid),  entry[PARAMETR_A], 0, 0, 1, 1);
@@ -305,18 +310,10 @@ static GtkWidget* parametrs_widget_new() {
     gtk_box_pack_start(GTK_BOX(vbox), separator_2,     FALSE, TRUE, 5);
     gtk_box_pack_start(GTK_BOX(vbox), draw_button,     FALSE, TRUE, 0);
     
-    const int init_parametr[] = {-10, 10, 1, 0, 1, 0};
-    char buf[3];
+    fill_parametrs();
     
-    int i;
-    for (i=0; i<6; ++i) {
-        parametr[i] = init_parametr[i];
-        sprintf(buf, "%d", init_parametr[i]);
-        gtk_entry_set_text(GTK_ENTRY(entry[i]), buf);
-    }
-    
-    g_signal_connect(draw_button, "clicked", G_CALLBACK(draw_button_clicked), NULL);
-    g_signal_connect(drawing_area, "draw", G_CALLBACK(draw_callback), NULL);
+    g_signal_connect(draw_button,  "released", G_CALLBACK(draw_button_clicked), NULL);
+    g_signal_connect(drawing_area, "draw",     G_CALLBACK(draw_callback),       NULL);
     
     return vbox;
 }
