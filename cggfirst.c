@@ -144,6 +144,8 @@ static void draw_axes(cairo_t   *cr,
 static void draw_graph(cairo_t *cr) {
     int i;
     int screen_width, screen_height;
+    int old_y;
+    int current_x, current_y;
     
     float *points;
     float min_y, max_y;
@@ -170,7 +172,7 @@ static void draw_graph(cairo_t *cr) {
         if (points[i] > max_y) max_y = points[i];
         if (points[i] < min_y) min_y = points[i];
     }
-    
+
     expansion_y = screen_height / (min_y - max_y);
     
     draw_axes(cr, screen_width+2*EMPTY_ZONE_WIDTH, screen_height+2*EMPTY_ZONE_WIDTH, min_y, max_y);
@@ -180,10 +182,23 @@ static void draw_graph(cairo_t *cr) {
     cairo_set_source_rgb(cr, 1, 0, 0);
     cairo_set_line_width(cr, 1.0);
     
+    current_x = EMPTY_ZONE_WIDTH;
+    old_y = current_y = (int) ((points[0] - max_y)*expansion_y) + EMPTY_ZONE_WIDTH;
+
     cairo_move_to(cr, EMPTY_ZONE_WIDTH, (int) ((points[0] - max_y)*expansion_y) + EMPTY_ZONE_WIDTH);
-    for (i=1; i<screen_width; i++)
-        cairo_line_to(cr, i+EMPTY_ZONE_WIDTH, (int) ((points[i] - max_y)*expansion_y) + EMPTY_ZONE_WIDTH);
-    
+    for (i=1; i<screen_width; i++) {
+        current_x = i+EMPTY_ZONE_WIDTH;
+        current_y = (int) ((points[i] - max_y)*expansion_y) + EMPTY_ZONE_WIDTH;
+
+        if ( fabs(current_y - old_y) <= screen_height / 2 ) {
+            cairo_line_to(cr, current_x, current_y);
+        }
+        else {
+            cairo_move_to(cr, current_x, current_y);
+        }
+
+        old_y = current_y;
+    }
     cairo_stroke(cr);
     
     free(points);
@@ -239,7 +254,7 @@ static void draw_button_clicked(GtkWidget *draw_button, gpointer p) {
 }
 
 static void fill_parametrs() {
-    const char* init_parametr[] = {"-10", "10", "1", "0", "1", "0"};
+    const char* init_parametr[] = {"-10", "10", "1", "0", "1", "1"};
     int i;
     
     for (i=0; i<6; ++i) {
