@@ -7,6 +7,6 @@
 
 #include <gtk/gtk.h>
 
-GtkWidget* third_task_new();
+GtkWidget* second_task_new();
 
 #endif

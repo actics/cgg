@@ -109,7 +109,7 @@ int main(int argc, char ** argv) {
     second_task = second_task_new();
     gtk_notebook_append_page(GTK_NOTEBOOK(main_notebook), second_task, gtk_label_new("Задание 2"));
     
-    /* Создание и упаковка виджета со вторым заданием */
+    /* Создание и упаковка виджета со третьим заданием */
     third_task = third_task_new();
     gtk_notebook_append_page(GTK_NOTEBOOK(main_notebook), third_task, gtk_label_new("Задание 3"));
     
