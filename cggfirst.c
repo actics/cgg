@@ -253,16 +253,6 @@ static void draw_button_clicked(GtkWidget *draw_button, gpointer p) {
     gtk_widget_queue_draw(drawing_area);
 }
 
-static void fill_parametrs() {
-    const char* init_parametr[] = {"-10", "10", "1", "0", "1", "1"};
-    int i;
-    
-    for (i=0; i<6; ++i) {
-        parametr[i] = atof(init_parametr[i]);
-        gtk_entry_set_text(GTK_ENTRY(entry[i]), init_parametr[i]);
-    }
-}
-
 static GtkWidget* parametrs_widget_new() {
     GtkWidget *vbox;
     GtkWidget *function_name_label;
@@ -324,8 +314,6 @@ static GtkWidget* parametrs_widget_new() {
     gtk_box_pack_start(GTK_BOX(vbox), parametrs_grid,  FALSE, TRUE, 5);
     gtk_box_pack_start(GTK_BOX(vbox), separator_2,     FALSE, TRUE, 5);
     gtk_box_pack_start(GTK_BOX(vbox), draw_button,     FALSE, TRUE, 0);
-    
-    fill_parametrs();
     
     g_signal_connect(draw_button,  "released", G_CALLBACK(draw_button_clicked), NULL);
     g_signal_connect(drawing_area, "draw",     G_CALLBACK(draw_callback),       NULL);

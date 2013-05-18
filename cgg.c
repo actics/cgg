@@ -2,6 +2,7 @@
 
 #include "cggfirst.h"
 #include "cggsecond.h"
+#include "cggthird.h"
 
 #define AVE_TEXT  "<big><b>Компьютерная Графика и Геометрия (КГГ)</b></big>\n\
 Практические работы Александра Лаврукова"
@@ -49,6 +50,7 @@ int main(int argc, char ** argv) {
     
     GtkWidget *first_task;
     GtkWidget *second_task;
+    GtkWidget *third_task;
     
     gtk_init(&argc, &argv);
     
@@ -106,6 +108,10 @@ int main(int argc, char ** argv) {
     /* Создание и упаковка виджета со вторым заданием */
     second_task = second_task_new();
     gtk_notebook_append_page(GTK_NOTEBOOK(main_notebook), second_task, gtk_label_new("Задание 2"));
+    
+    /* Создание и упаковка виджета со вторым заданием */
+    third_task = third_task_new();
+    gtk_notebook_append_page(GTK_NOTEBOOK(main_notebook), third_task, gtk_label_new("Задание 3"));
     
     /* Подключение необходимых обратных вызовов */
     g_signal_connect(G_OBJECT(main_bottom_about_button), "clicked", G_CALLBACK(show_about),    main_window);

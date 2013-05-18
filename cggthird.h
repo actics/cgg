@@ -1,5 +1,5 @@
-#ifndef __CGG_SECOND_TASK__
-#define __CGG_SECOND_TASK__
+#ifndef __CGG_TIHRD_TASK__
+#define __CGG_THIRD_TASK__
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -7,6 +7,6 @@
 
 #include <gtk/gtk.h>
 
-GtkWidget* third_task_new();
+GtkWidget* second_task_new();
 
 #endif
